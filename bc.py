@@ -1,20 +1,28 @@
 import hashlib
 import time
 import random
+import rsa
 
 class Transaction:
-    def __init__(self, sender, receiver, amount):
-        self.sender = sender
-        self.receiver = receiver
+    def __init__(self, sender_id, receiver_id, amount,transaction_id, reciever_signature,sender_signature):
+        self.sender_id = sender_id
+        self.receiver_id = receiver_id
         self.amount = amount
+        self.transaction_id = transaction_id
+        self.reciever_signature = reciever_signature
+        self.sender_signature = sender_signature
+        
+        
+        
 
 class Block:
-    def __init__(self, prev_hash, transactions, timestamp=None, validator=None):
+    def __init__(self, block_hash, prev_hash, merkle_root,transactions, timestamp=None, validator=None):
+        self.block_hash = block_hash
         self.prev_hash = prev_hash
+        self.merkle_root = merkle_root
         self.transactions = transactions
         self.timestamp = timestamp or time.time()
         self.validator = validator
-        self.nonce = 0
         self.hash = self.calculate_hash()
 
     def calculate_hash(self):
@@ -31,10 +39,12 @@ class Block:
             self.nonce += 1
             self.hash = self.calculate_hash()
 
-class Validator:
-    def __init__(self, public_key, stake):
-        self.public_key = public_key
-        self.stake = stake
+class Node:
+    def __init__(self,node_id, stake,deposit = 100):
+        (self.pubkey, self.__privkey) = rsa.newkeys(512)
+        self.node_id = node_id
+        self.stake = stake  - deposit
+        self.deposit = deposit
 
 class LieDetectionContract:
     def __init__(self):
@@ -46,7 +56,14 @@ class LieDetectionContract:
     def verify(self, requester, target, action, verification_result):
         if (requester, target, action) in self.verifications:
             self.verifications[(requester, target, action)] = verification_result
-
+def generate_random_number_and_sha256():
+    # Generate a random number
+        random_number = random.randint(1, 1000000000000000000)
+        random_number_str = str(random_number)
+        # Calculate the SHA-256 hash of the random number string
+        sha256_hash = hashlib.sha256(random_number_str.encode()).hexdigest()
+        return random_number, sha256_hash
+    
 class Blockchain:
     def __init__(self, difficulty=2, reward=10):
         self.chain = [self.create_genesis_block()]
@@ -119,27 +136,44 @@ class Blockchain:
 
 if __name__ == '__main__':
     blockchain = Blockchain()
+    task_no="sparsh"
+    while task_no != 'exit':
+        print("Enter 1 if you want to create a node: ")
+        print("Enter 2 if you want to do a transaction: ")
+        print("Enter 2 if you want to exit: ")
+        task_no = input()
+        if task_no==1:
+            Node_id= input("Enter Node id : ")
+            stake = input("Enter Initial deposit : ")
+            Node(Node_id,stake)
+        elif task_no == 2:
+            sender_id= input("Enter your id : ")
+            receiver_id= input("Enter receiver id : ")
+            amount = input("Enter amount : ")
+            Product_id = input("Enter Product_id : ")
+            Transaction(sender_id,receiver_id,amount,Product_id)    
+
 
     # Register validators with stakes
-    validator1 = Validator("Validator1", 1000)
-    validator2 = Validator("Validator2", 1500)
-    validator3 = Validator("Validator3", 2000)
+    validator1 = Node("Node1", 1000)
+    validator2 = Node("Node2", 1500)
+    validator3 = Node("Node3", 2000)
     blockchain.add_validator(validator1)
     blockchain.add_validator(validator2)
     blockchain.add_validator(validator3)
 
     # Perform transactions
-    blockchain.create_transaction("Validator1", "Validator2", 200)
-    blockchain.create_transaction("Validator2", "Validator3", 300)
+    blockchain.create_transaction("Node1", "Node2", 200)
+    blockchain.create_transaction("Node2", "Node3", 300)
 
     # Request verification
-    blockchain.create_verification_request("Validator1", "Validator2", "Dispatch")
-    blockchain.create_verification_request("Validator2", "Validator3", "Dispatch")
+    blockchain.create_verification_request("Node1", "Node2", "Dispatch")
+    blockchain.create_verification_request("Node2", "Node3", "Dispatch")
 
     # Simulate verification
     verification_result = True  # Set to True for successful verification
-    blockchain.verify_action("Validator1", "Validator2", "Dispatch", verification_result)
-    blockchain.verify_action("Validator2", "Validator3", "Dispatch", verification_result)
+    blockchain.verify_action("Node1", "Node2", "Dispatch", verification_result)
+    blockchain.verify_action("Node2", "Node3", "Dispatch", verification_result)
 
     # Mine a block
     selected_validator = blockchain.select_validator()
