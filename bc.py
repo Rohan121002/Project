@@ -4,12 +4,12 @@ import random
 import rsa
 
 class Transaction:
-    def __init__(self, sender_id, receiver_id, amount,transaction_id, reciever_signature,sender_signature):
+    def __init__(self, sender_id, receiver_id, amount,transaction_id, sender_signature):
         self.sender_id = sender_id
         self.receiver_id = receiver_id
         self.amount = amount
         self.transaction_id = transaction_id
-        self.reciever_signature = reciever_signature
+        # self.reciever_signature = reciever_signature
         self.sender_signature = sender_signature
         
         
@@ -28,7 +28,7 @@ class Block:
     def calculate_hash(self):
         data = (str(self.timestamp) +
                 str(self.transactions) +
-                str(self.nonce) +
+                # str(self.nonce) +
                 self.prev_hash +
                 (self.validator.public_key if self.validator else ""))
         return hashlib.sha256(data.encode()).hexdigest()
@@ -36,7 +36,7 @@ class Block:
     def mine_block(self, difficulty):
         target = '0' * difficulty
         while self.hash[:difficulty] != target:
-            self.nonce += 1
+            # self.nonce += 1
             self.hash = self.calculate_hash()
 
 class Node:
@@ -58,7 +58,7 @@ class LieDetectionContract:
             self.verifications[(requester, target, action)] = verification_result
 def generate_random_number_and_sha256():
     # Generate a random number
-        random_number = random.randint(1, 1000000000000000000)
+        random_number = random.randint(1, 100000000000000)
         random_number_str = str(random_number)
         # Calculate the SHA-256 hash of the random number string
         sha256_hash = hashlib.sha256(random_number_str.encode()).hexdigest()
@@ -73,68 +73,70 @@ class Blockchain:
         self.mining_reward = reward
         self.lie_detection_contract = LieDetectionContract()
         
-    def create_verification_request(self, requester, target, action):
-        self.lie_detection_contract.request_verification(requester, target, action)
+    # def create_verification_request(self, requester, target, action):
+    #     self.lie_detection_contract.request_verification(requester, target, action)
 
-    def verify_action(self, requester, target, action, verification_result):
-        self.lie_detection_contract.verify(requester, target, action, verification_result)
+    # def verify_action(self, requester, target, action, verification_result):
+    #     self.lie_detection_contract.verify(requester, target, action, verification_result)
 
     def create_genesis_block(self):
-        return Block("0", [], timestamp=0)
+        return Block(calculate_hash(self),"0", [], timestamp=0)
 
-    def get_last_block(self):
-        return self.chain[-1]
+    # def get_last_block(self):
+    #     return self.chain[-1]
 
     def add_validator(self, validator):
         self.validators.append(validator)
 
-    def get_total_stake(self):
-        return sum(validator.stake for validator in self.validators)
+    # def get_total_stake(self):
+    #     return sum(validator.stake for validator in self.validators)
 
-    def select_validator(self):
-        random.seed()
-        rand_value = random.uniform(0, self.get_total_stake())
-        cumulative_stake = 0
-        for validator in self.validators:
-            cumulative_stake += validator.stake
-            if cumulative_stake >= rand_value:
-                return validator
-        return None
+    # def select_validator(self):
+    #     random.seed()
+    #     rand_value = random.uniform(0, self.get_total_stake())
+    #     cumulative_stake = 0
+    #     for validator in self.validators:
+    #         cumulative_stake += validator.stake
+    #         if cumulative_stake >= rand_value:
+    #             return validator
+    #     return None
 
-    def mine_pending_transactions(self, miner):
-        if not self.pending_transactions:
-            return False
+    # def mine_pending_transactions(self, miner):
+    #     if not self.pending_transactions:
+    #         return False
 
-        prev_block = self.get_last_block()
+    #     prev_block = self.get_last_block()
         new_block = Block(prev_block.hash, self.pending_transactions, validator=miner, difficulty=self.difficulty)
-        new_block.mine_block(self.difficulty)
-        self.chain.append(new_block)
-        self.pending_transactions = [Transaction(None, miner.public_key, self.mining_reward)]
-        return True
+    #     new_block.mine_block(self.difficulty)
+    #     self.chain.append(new_block)
+    #     self.pending_transactions = [Transaction(None, miner.public_key, self.mining_reward)]
+    #     return True
 
-    def create_transaction(self, sender, receiver, amount):
-        if sender == receiver:
-            return False
+    # def create_transaction(self, sender, receiver, amount):
+    #     if sender == receiver:
+    #         return False
 
-        sender_balance = self.get_balance(sender)
-        if sender_balance < amount:
-            return False
+    #     sender_balance = self.get_balance(sender)
+    #     if sender_balance < amount:
+    #         return False
 
-        transaction = Transaction(sender, receiver, amount)
-        self.pending_transactions.append(transaction)
-        return True
+    #     transaction = Transaction(sender, receiver, amount)
+    #     self.pending_transactions.append(transaction)
+    #     return True
 
-    def get_balance(self, address):
-        balance = 0
-        for block in self.chain:
-            for transaction in block.transactions:
-                if transaction.sender == address:
-                    balance -= transaction.amount
-                if transaction.receiver == address:
-                    balance += transaction.amount
-        return balance
+    # def get_balance(self, address):
+    #     balance = 0
+    #     for block in self.chain:
+    #         for transaction in block.transactions:
+    #             if transaction.sender == address:
+    #                 balance -= transaction.amount
+    #             if transaction.receiver == address:
+    #                 balance += transaction.amount
+    #     return balance
 
 if __name__ == '__main__':
+    nodes:list[Node]=[]
+    Transactions:list[Transaction]=[]
     blockchain = Blockchain()
     task_no="sparsh"
     while task_no != 'exit':
@@ -145,25 +147,26 @@ if __name__ == '__main__':
         if task_no==1:
             Node_id= input("Enter Node id : ")
             stake = input("Enter Initial deposit : ")
-            Node(Node_id,stake)
+            nodes.append(Node(Node_id,stake)); 
+            blockchain.add_validator(Node(Node_id,stake))
         elif task_no == 2:
             sender_id= input("Enter your id : ")
             receiver_id= input("Enter receiver id : ")
             amount = input("Enter amount : ")
             Product_id = input("Enter Product_id : ")
-            Transaction(sender_id,receiver_id,amount,Product_id)    
-
+            Transactions.append(Transaction(sender_id,receiver_id,amount,Product_id))    
+            blockchain.create_transaction("Node1", "Node2", 200)
 
     # Register validators with stakes
-    validator1 = Node("Node1", 1000)
-    validator2 = Node("Node2", 1500)
-    validator3 = Node("Node3", 2000)
-    blockchain.add_validator(validator1)
-    blockchain.add_validator(validator2)
-    blockchain.add_validator(validator3)
+    # validator1 = Node("Node1", 1000)
+    # validator2 = Node("Node2", 1500)
+    # validator3 = Node("Node3", 2000)
+    
+    # blockchain.add_validator(validator2)
+    # blockchain.add_validator(validator3)
 
     # Perform transactions
-    blockchain.create_transaction("Node1", "Node2", 200)
+    
     blockchain.create_transaction("Node2", "Node3", 300)
 
     # Request verification
