@@ -9,9 +9,6 @@ class Block():
         self.transaction_count = 0
         self.transaction = []
 
-
-def 
-
     
 
         
