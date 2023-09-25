@@ -12,11 +12,12 @@ class Transaction:
         # self.reciever_signature = reciever_signature
         self.sender_signature = sender_signature
         
+    
         
         
 
 class Block:
-    def __init__(self, block_hash, prev_hash, merkle_root,transactions, timestamp=None, validator=None):
+    def __init__(self, prev_hash, merkle_root,transactions, timestamp=None, validator=None):
         self.block_hash = block_hash
         self.prev_hash = prev_hash
         self.merkle_root = merkle_root
@@ -45,6 +46,11 @@ class Node:
         self.node_id = node_id
         self.stake = stake  - deposit
         self.deposit = deposit
+        
+    def signature_by_sender(self,receiver_id,amount):
+         message = (str(self.node_id+receiver_id) + str(amount))
+         signature = rsa.sign(message.encode(), self.__privkey, 'SHA-1')
+         return signature
 
 class LieDetectionContract:
     def __init__(self):
@@ -65,6 +71,7 @@ def generate_random_number_and_sha256():
         return random_number, sha256_hash
     
 class Blockchain:
+
     def __init__(self, difficulty=2, reward=10):
         self.chain = [self.create_genesis_block()]
         self.difficulty = difficulty
@@ -72,6 +79,7 @@ class Blockchain:
         self.validators = []
         self.mining_reward = reward
         self.lie_detection_contract = LieDetectionContract()
+        # self.Transactions:list[Transaction]=[]
         
     # def create_verification_request(self, requester, target, action):
     #     self.lie_detection_contract.request_verification(requester, target, action)
@@ -112,17 +120,18 @@ class Blockchain:
     #     self.pending_transactions = [Transaction(None, miner.public_key, self.mining_reward)]
     #     return True
 
-    # def create_transaction(self, sender, receiver, amount):
-    #     if sender == receiver:
-    #         return False
+    def create_transaction(self, sender, receiver, amount, signature):
+        if sender == receiver:
+            return False
 
-    #     sender_balance = self.get_balance(sender)
-    #     if sender_balance < amount:
-    #         return False
+        sender_balance = self.get_balance(sender)
+        if sender_balance < amount:
+            return False
 
-    #     transaction = Transaction(sender, receiver, amount)
-    #     self.pending_transactions.append(transaction)
-    #     return True
+        transaction = Transaction(sender, receiver, amount,signature)
+        
+        self.pending_transactions.append(transaction)
+        return True
 
     # def get_balance(self, address):
     #     balance = 0
@@ -135,8 +144,7 @@ class Blockchain:
     #     return balance
 
 if __name__ == '__main__':
-    nodes:list[Node]=[]
-    Transactions:list[Transaction]=[]
+    nodes:dict[int,Node]={}
     blockchain = Blockchain()
     task_no="sparsh"
     while task_no != 'exit':
@@ -145,17 +153,17 @@ if __name__ == '__main__':
         print("Enter 2 if you want to exit: ")
         task_no = input()
         if task_no==1:
-            Node_id= input("Enter Node id : ")
-            stake = input("Enter Initial deposit : ")
-            nodes.append(Node(Node_id,stake)); 
+            Node_id= int(input("Enter Node id : "))
+            stake = int(input("Enter Initial deposit : "))
+            nodes[Node_id] = Node(Node_id,stake)
             blockchain.add_validator(Node(Node_id,stake))
         elif task_no == 2:
             sender_id= input("Enter your id : ")
             receiver_id= input("Enter receiver id : ")
             amount = input("Enter amount : ")
-            Product_id = input("Enter Product_id : ")
-            Transactions.append(Transaction(sender_id,receiver_id,amount,Product_id))    
-            blockchain.create_transaction("Node1", "Node2", 200)
+            Product_id = input("Enter Product_id : ")   
+            signature = nodes[sender_id].signature_by_sender(receiver_id,amount,)
+            blockchain.create_transaction("Node1", "Node2", 200,signature)
 
     # Register validators with stakes
     # validator1 = Node("Node1", 1000)
