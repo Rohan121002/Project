@@ -75,7 +75,32 @@ class Blockchain:
         self.validators_list = []
         self.mining_reward = reward
         self.lie_detection_contract = LieDetectionContract()
-        
+    
+    def create_user(self):
+        Node_id= int(input("Enter Node id : "))
+        stake = int(input("Enter Initial deposit : "))
+        while stake <= 100:
+            stake = int(input("The entered amount is less than required deposit. Please re-enter the amount"))
+        blockchain.validators_list.append(Node(Node_id,stake))
+
+    def create_transaction(self):
+        sender_id= int(input("Enter your id : "))
+        receiver_id= input("Enter receiver id : ")
+        amount = input("Enter amount : ")
+        Product_id = input("Enter Product_id : ")
+        if (not self.validate_transaction(sender_id, receiver_id, Product_id,amount)):
+            print("Transaction is not valid")
+            return
+        print("The transaction is valid and added") 
+        self.Transactions_list.append(Transaction(sender_id,receiver_id,amount,Product_id))   
+        signature = nodes[sender_id].signature_by_sender(receiver_id,amount,)
+        blockchain.create_transaction(sender_id, receiver_id, amount, Product_id)
+        blockchain.create_verification_request(sender_id, receiver_id, "Dispatch")
+        verification_result = True  # Set to True for successful verification
+        blockchain.verify_action(sender_id,receiver_id ,"Dispatch", verification_result)
+        selected_validator = blockchain.select_validator()
+
+
     def create_verification_request(self, requester, target, action):
         self.lie_detection_contract.request_verification(requester, target, action)
 
@@ -116,17 +141,17 @@ class Blockchain:
         self.pending_transactions = [Transaction(None, miner.public_key, self.mining_reward)]
         return True
 
-    def create_transaction(self, sender, receiver, amount,signature):
-        if sender == receiver:
-            return False
+    # def create_transaction(self, sender, receiver, amount,signature):
+    #     if sender == receiver:
+    #         return False
 
-        sender_balance = self.get_balance(sender)
-        if sender_balance < amount:
-            return False
+    #     sender_balance = self.get_balance(sender)
+    #     if sender_balance < amount:
+    #         return False
 
-        transaction = Transaction(sender, receiver, amount,signature)
-        self.pending_transactions.append(transaction)
-        return True
+    #     transaction = Transaction(sender, receiver, amount,signature)
+    #     self.pending_transactions.append(transaction)
+    #     return True
 
     # def get_balance(self, address):
     #     balance = 0
@@ -151,37 +176,24 @@ class LieDetectionContract:
 
 # Starting Point
 if __name__ == '__main__':
-    nodes:dict[int,Node]={}
+    # nodes:dict[int,Node]={}
     # nodes:list[Node]=[]
     # Transactions:list[Transaction]=[]
     blockchain = Blockchain()
-    task_no=-1
-    while task_no != 3:
-        print("Enter 1 if you want to create a node: ")
-        print("Enter 2 if you want to do a transaction: ")
-        print("Enter 3 if you want to check your transaction status: ")
-        print("Enter 4 if you wish to check the status of the product: ")
+    while True:
+        print("1. Create a new user")
+        print("2. Create a new transaction")
+        print("3. Print the blockchain")
+        print("4. Print the product status")
+        print("5. Print the users")
+        print("6. Validate Block")
+        print("7. Exit")
         task_no = input()
         if task_no==1:
-            Node_id= int(input("Enter Node id : "))
-            stake = int(input("Enter Initial deposit : "))
-            nodes[Node_id] = Node(Node_id,stake)
-            while stake <= 100:
-                stake = int(input("The entered amount is less than required deposit. Please re-enter the amount"))
-            blockchain.validators_list.append(Node(Node_id,stake)); 
+            blockchain.create_user()
         
         elif task_no == 2:
-            sender_id= int(input("Enter your id : "))
-            receiver_id= input("Enter receiver id : ")
-            amount = input("Enter amount : ")
-            Product_id = input("Enter Product_id : ")
-            blockchain.Transactions_list.append(Transaction(sender_id,receiver_id,amount,Product_id))   
-            signature = nodes[sender_id].signature_by_sender(receiver_id,amount,)
-            blockchain.create_transaction(sender_id, receiver_id, amount, Product_id)
-            blockchain.create_verification_request(sender_id, receiver_id, "Dispatch")
-            verification_result = True  # Set to True for successful verification
-            blockchain.verify_action(sender_id,receiver_id ,"Dispatch", verification_result)
-            selected_validator = blockchain.select_validator()
+            blockchain.create_transaction()
 
         elif task_no == 3:
             client_id = input("Enter your ID")
@@ -200,7 +212,38 @@ if __name__ == '__main__':
 
 
             
-
+# if _name_ == '_main_':
+#     mine = Land_Blockchain()
+#     while True:
+#         print("1. Create a new user")
+#         print("2. Create a new transaction")
+#         print("3. Print the blockchain")
+#         print("4. Print the property history")
+#         print("5. Print the users")
+#         print("6. Validate Blockchain")
+#         print("7. Exit")
+#         choice = int(input("Enter your choice: "))
+#         if (choice == 1):
+#             mine.create_user()
+#         elif (choice == 2):
+#             mine.create_transaction()
+#         elif (choice == 3):
+#             mine.print_blockchain()
+#         elif (choice == 4):
+#             pid = int(input("Enter the property ID: "))
+#             mine.print_property_history(pid)
+#         elif (choice == 5):
+#             mine.print_nodes()
+#         elif (choice == 6):
+#             if (mine.validate_chain()):
+#                 print("\nThe Blockchain is valid!\n")
+#             else:
+#                 print("\nThe Blockchain is not valid!\n")
+#         elif (choice == 7):
+#             print("Hope you had a blast using LAND MINE!!")
+#             break
+#         else:
+#             print("Invalid choice")
                 
 
 
