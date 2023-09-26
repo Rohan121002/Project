@@ -5,16 +5,18 @@ import time
 import datetime
 import merkle_tree
 from uuid import uuid4
+import pyqrcode
+import png
+from pyqrcode import QRCode
 
-
-class Land_Blockchain(object):
+class Blockchain(object):
     # Constructor
     def __init__(self):
         self.chain = []
         self.transactions = []
         self.users = {}
-        self.property_history = {}
-        self.node_ctr = 1
+        self.product_history = {}
+        self.node_id = 1
         self.prop_ctr = 1
 
     # Create user
@@ -22,25 +24,32 @@ class Land_Blockchain(object):
         print()
         self.mine = 0
         try:
-            uid = self.node_ctr
+            uid = int(input("Enter the user id of user "))
             miner = str(input("Enter the name of the node: "))
+            stake = int(input("Enter the amount which you want to stake")) 
+            if not (len(self.users)== 0):
+                for id in self.users:
+                    if id==uid:
+                        print("The user id already exist. Please try again!")
+                        return
+                    
             props_num = int(
                 input("Enter the number of properties owned by the node: "))
-            self.node_ctr = self.node_ctr + 1
-            props = []
-            for i in range(props_num):
-                pid = self.prop_ctr+i
-                props.append(pid)
-                self.property_history[pid] = {
-                    'Owner': uid,
+            props = {}
+            for _ in range(props_num):
+                pid = int(input("Enter the Product id: "))
+                pnum = int(input(f"Enter the number of product with pid {pid}: "))
+                props[pid]=pnum
+                self.product_history[pid] = {
+                    'Owner': [uid],
                     'History': []
                 }
-            self.prop_ctr = self.prop_ctr + props_num
             self.users[uid] = {
                 'ID': uid,
                 'Name': miner,
-                'Number of properties': props_num,
-                'Properties owned': props
+                'Number of Products': props_num,
+                'Products owned': props,
+                'Stake': stake
             }
             self.mine = 1
             print("The node was added to the blockchain\n")
@@ -83,42 +92,69 @@ class Land_Blockchain(object):
             seller = int(input("\nEnter the Seller ID: "))
             buyer = int(input("Enter the Receiver ID: "))
             pid = int(input("Enter the Property ID: "))
-            if (not self.validate_transaction(seller, buyer, pid)):
-                print("\nThis Transaction is not valid\n")
+            Units = int(input(f"Enter number of products of {pid} you want to send : "))
+            
+            if (not self.validate_transaction(seller, buyer, pid,Units)):
+                print("\nThis Transaction is not valid \n")
                 return
-            print("\nThis Transaction is added and validated\n")
+            
+            
+                
             trans = {
                 "Transaction_ID": str(uuid4()).replace('-', ''),
                 "Timestamp": datetime.datetime.now(),
                 "Seller ID": seller,
                 "Buyer ID": buyer,
-                "Property ID": pid,
+                "Product ID": pid,
+                "Units": Units,
             }
+            
             self.transactions.append(trans)
-            self.property_history[pid]["Owner"] = buyer
-            self.property_history[pid]["History"].append(trans)
-            self.users[seller]['Properties owned'].remove(pid)
-            self.users[seller]['Number of properties'] = self.users[seller]['Number of properties'] - 1
-            self.users[buyer]['Properties owned'].append(pid)
-            self.users[buyer]['Number of properties'] = self.users[buyer]['Number of properties'] + 1
+            self.product_history[pid]["Owner"].append(buyer)
+            self.product_history[pid]["History"].append(trans)
+            self.users[seller]['Products owned'][pid] -= Units
+            if self.users[seller]['Products owned'][pid]==0:
+                self.users[seller]['Products owned'].pop(pid)
+                self.users[seller]['Number of Products'] = self.users[seller]['Number of Products'] - 1
+                
+            if pid in self.users[buyer]['Products owned']:
+                self.users[buyer]['Products owned'][pid]  += Units
+            else :
+                self.users[buyer]['Products owned'][pid]=Units
+                self.users[buyer]['Number of Products'] = self.users[seller]['Number of Products'] + 1
 
+            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
+            if client_verdict == 'NO':
+                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
+                self.users[buyer]['Stake'] //= 3
+                
+            print("\nThis Transaction is added and validated\n")
+            
             if (len(self.transactions) == 3):
                 self.create_timer()
                 print("\nCreating a new block\n")
         except:
             print("Enter the correct format of data required to add a new transaction!\n")
 
+
+
     # Validate Transaction
-    def validate_transaction(self, seller, buyer, pid):
+    def validate_transaction(self, seller, buyer, pid, pnum):
         if (seller == buyer):
-            print("You cannot sell the property to yourself")
+            print("You cannot sell the product to yourself")
             return False
-        if pid in self.property_history.keys():
+        if pid in self.product_history.keys():
             if seller in self.users.keys() and buyer in self.users.keys():
-                if self.property_history[pid]['Owner'] == seller:
-                    return True
-                else:
-                    print("\nThe seller does not own this property!")
+                for id in self.product_history[pid]['Owner']:
+                    if id == seller:
+                        if self.users[seller]['Products owned'][pid]>=pnum:
+                            return True
+                        else :
+                            print("\nThe seller does not have enough units of product! Hence the seller is lying")
+                            self.users[seller]['Stake'] //= 3
+                            return False
+
+                print("\nThe seller does not have this product!")
         return False
 
     # Validate Chain
@@ -153,21 +189,37 @@ class Land_Blockchain(object):
         print()
 
     # Print Property History
-    def print_property_history(self, pid):
+    def print_product_history(self, pid):
         try:
             print()
             for i in self.users.keys():
-                if self.users[i]['ID'] == self.property_history[pid]['Owner']:
-                    print("The Owner of this property is: " +
+                if self.users[i]['ID'] == self.product_history[pid]['Owner']:
+                    print("The Owner of this Product is: " +
                           str(self.users[i]['Name']))
-            print("The transaction history of this property is: ")
-            for i in self.property_history[pid]['History']:
+            print("The transaction history of this Product is: ")
+            for i in self.product_history[pid]['History']:
                 print(i)
             print()
 
         except:
             print("\nPlease enter the correct inputs!\n")
-
+            
+            
+    def generate_QR_Code(self, pid):
+        try:
+            print()
+            prod_history = ""
+            for i in self.users:
+                if pid in self.users[i]['Products owned']:
+                    prod_history += f"{self.users[i]['Name']} with ID {i} has {self.users[i]['Products owned'][pid]} units\n"
+            # print(prod_history)
+            url = pyqrcode.create(prod_history)
+            url.svg("myqr.svg", scale = 8)
+            url.png('myqr.png', scale = 6)
+            print("\n The QR code has been generated in myqr.png file in working directory!")
+            
+        except:
+            print("\nPlease enter the correct inputs!\n")
     # Hash Function
 
     def hash(self, block):
@@ -176,21 +228,29 @@ class Land_Blockchain(object):
 
     # Create Timer for Achieving Consensus
     def create_timer(self):
-        mini = 100000
-        for i in self.users.keys():
-            n = random.randint(1, 10)
-            self.users[i]['wait-time'] = n
-            mini = min(mini, n)
+        mini = 1
 
         print("\n-------------------Acheiving consensus-------------------\n")
         time.sleep(mini)
-
-        for i in self.users.keys():
-            if (self.users[i]['wait-time'] == mini):
-                print(str(
-                    self.users[i]['Name']) + " has the least wait time, thus the leader for this round of consensus will mine the block.\n")
-                self.create_new_block()
-                break
+        total_stake = 0
+        total_user = 0
+        for i in self.users:
+            total_user += 1
+            total_stake += 2*self.users[i]['Stake']
+     
+        total_stake//=total_user
+        max_value = 0
+        max_Node = None
+        for i in self.users:
+            random_num = random.randint(1,total_stake)
+            print(random_num + self.users[i]['Stake'])
+            if max_value < random_num + self.users[i]['Stake']:
+                max_Node = i
+                max_value = random_num + self.users[i]['Stake']
+        print(str(
+            self.users[max_Node]['Name']) + " is the miner for this round of consensus and will mine the block.\n")
+        self.users[max_Node]['Stake'] += total_stake//total_user
+        self.create_new_block()
 
     # Print Users
     def print_nodes(self):
@@ -198,22 +258,23 @@ class Land_Blockchain(object):
         for i in self.users.keys():
             print("User ID: ", i)
             print("Name: ", self.users[i]['Name'])
-            print("Number of properties owned: ",
-                  self.users[i]['Number of properties'])
-            print("Property IDs: ", self.users[i]['Properties owned'])
+            print("Number of product owned: ",self.users[i]['Number of Products'])
+            print("Product IDs: ", self.users[i]['Products owned'])
+            print("User's stake is: ", self.users[i]['Stake'])
         print()
 
 
 if __name__ == '__main__':
-    mine = Land_Blockchain()
+    mine = Blockchain()
     while True:
         print("1. Create a new user")
         print("2. Create a new transaction")
         print("3. Print the blockchain")
-        print("4. Print the property history")
-        print("5. Print the users")
-        print("6. Validate Blockchain")
-        print("7. Exit")
+        print("4. Print the product history")
+        print("5. Generate QR for Product Status")
+        print("6. Print the users")
+        print("7. Validate Blockchain")
+        print("8. Exit")
         choice = int(input("Enter your choice: "))
         if (choice == 1):
             mine.create_user()
@@ -222,16 +283,19 @@ if __name__ == '__main__':
         elif (choice == 3):
             mine.print_blockchain()
         elif (choice == 4):
-            pid = int(input("Enter the property ID: "))
-            mine.print_property_history(pid)
+            pid = int(input("Enter the product ID: "))
+            mine.print_product_history(pid)
         elif (choice == 5):
-            mine.print_nodes()
+            pid = int(input("Enter the product ID: "))
+            mine.generate_QR_Code(pid)
         elif (choice == 6):
+            mine.print_nodes()
+        elif (choice == 7):
             if (mine.validate_chain()):
                 print("\nThe Blockchain is valid!\n")
             else:
                 print("\nThe Blockchain is not valid!\n")
-        elif (choice == 7):
+        elif (choice == 8):
             print("Hope you had a blast using LAND MINE!!")
             break
         else:
