@@ -4,11 +4,11 @@ import random
 import rsa
 
 class Transaction:
-    def __init__(self, sender_id, receiver_id, amount,transaction_id, sender_signature):
+    def __init__(self, sender_id, receiver_id, amount, sender_signature):
         self.sender_id = sender_id
         self.receiver_id = receiver_id
         self.amount = amount
-        self.transaction_id = transaction_id
+        # self.transaction_id = transaction_id
         self.sender_signature = sender_signature
     def to_dict(self):
         return {
@@ -54,6 +54,10 @@ class Node:
         self.node_id = node_id
         self.stake = stake  - deposit
         self.deposit = deposit
+    def signature_by_sender(self,receiver_id,amount):
+         message = (str(self.node_id+receiver_id) + str(amount))
+         signature = rsa.sign(message.encode(), self.__privkey, 'SHA-1')
+         return signature
 
 class Product:
     def __init__(self, Product_id, amount):
@@ -112,17 +116,17 @@ class Blockchain:
         self.pending_transactions = [Transaction(None, miner.public_key, self.mining_reward)]
         return True
 
-    # def create_transaction(self, sender, receiver, amount):
-    #     if sender == receiver:
-    #         return False
+    def create_transaction(self, sender, receiver, amount,signature):
+        if sender == receiver:
+            return False
 
-    #     sender_balance = self.get_balance(sender)
-    #     if sender_balance < amount:
-    #         return False
+        sender_balance = self.get_balance(sender)
+        if sender_balance < amount:
+            return False
 
-    #     transaction = Transaction(sender, receiver, amount)
-    #     self.pending_transactions.append(transaction)
-    #     return True
+        transaction = Transaction(sender, receiver, amount,signature)
+        self.pending_transactions.append(transaction)
+        return True
 
     # def get_balance(self, address):
     #     balance = 0
@@ -147,6 +151,7 @@ class LieDetectionContract:
 
 # Starting Point
 if __name__ == '__main__':
+    nodes:dict[int,Node]={}
     # nodes:list[Node]=[]
     # Transactions:list[Transaction]=[]
     blockchain = Blockchain()
@@ -158,18 +163,20 @@ if __name__ == '__main__':
         print("Enter 4 if you wish to check the status of the product: ")
         task_no = input()
         if task_no==1:
-            Node_id= input("Enter Node id : ")
-            stake = input("Enter Initial deposit : ")
-            while stake < 100:
-                stake = input("The entered amount is less than required deposit. Please re-enter the amount")
+            Node_id= int(input("Enter Node id : "))
+            stake = int(input("Enter Initial deposit : "))
+            nodes[Node_id] = Node(Node_id,stake)
+            while stake <= 100:
+                stake = int(input("The entered amount is less than required deposit. Please re-enter the amount"))
             blockchain.validators_list.append(Node(Node_id,stake)); 
         
         elif task_no == 2:
-            sender_id= input("Enter your id : ")
+            sender_id= int(input("Enter your id : "))
             receiver_id= input("Enter receiver id : ")
             amount = input("Enter amount : ")
             Product_id = input("Enter Product_id : ")
             blockchain.Transactions_list.append(Transaction(sender_id,receiver_id,amount,Product_id))   
+            signature = nodes[sender_id].signature_by_sender(receiver_id,amount,)
             blockchain.create_transaction(sender_id, receiver_id, amount, Product_id)
             blockchain.create_verification_request(sender_id, receiver_id, "Dispatch")
             verification_result = True  # Set to True for successful verification
