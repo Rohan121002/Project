@@ -55,14 +55,20 @@ class Node:
         self.stake = stake  - deposit
         self.deposit = deposit
 
-    
+class Product:
+    def __init__(self, Product_id, amount):
+        self.Product_id = Product_id
+        self.amount = amount
+
 
 class Blockchain:
     def __init__(self, difficulty=2, reward=10):
         self.chain = [self.create_genesis_block()]
+        self.Transactions_list = []
+        self.Product_list = {}
         self.difficulty = difficulty
         self.pending_transactions = []
-        self.validators = []
+        self.validators_list = []
         self.mining_reward = reward
         self.lie_detection_contract = LieDetectionContract()
         
@@ -141,8 +147,8 @@ class LieDetectionContract:
 
 # Starting Point
 if __name__ == '__main__':
-    nodes:list[Node]=[]
-    Transactions:list[Transaction]=[]
+    # nodes:list[Node]=[]
+    # Transactions:list[Transaction]=[]
     blockchain = Blockchain()
     task_no=-1
     while task_no != 3:
@@ -156,14 +162,14 @@ if __name__ == '__main__':
             stake = input("Enter Initial deposit : ")
             while stake < 100:
                 stake = input("The entered amount is less than required deposit. Please re-enter the amount")
-            nodes.append(Node(Node_id,stake)); 
-            blockchain.add_validator(Node(Node_id,stake))
+            blockchain.validators_list.append(Node(Node_id,stake)); 
+        
         elif task_no == 2:
             sender_id= input("Enter your id : ")
             receiver_id= input("Enter receiver id : ")
             amount = input("Enter amount : ")
             Product_id = input("Enter Product_id : ")
-            Transactions.append(Transaction(sender_id,receiver_id,amount,Product_id))   
+            blockchain.Transactions_list.append(Transaction(sender_id,receiver_id,amount,Product_id))   
             blockchain.create_transaction(sender_id, receiver_id, amount, Product_id)
             blockchain.create_verification_request(sender_id, receiver_id, "Dispatch")
             verification_result = True  # Set to True for successful verification
