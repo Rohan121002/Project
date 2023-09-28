@@ -32,14 +32,17 @@ class Blockchain(object):
                     if id==uid:
                         print("The user id already exist. Please try again!")
                         return
-                    
+            
             prod_num = int(
                 input("Enter the number of products owned by the node: "))
             prodcut = {}
+            timestamp = {}
             for _ in range(prod_num):
                 pid = int(input("Enter the Product id: "))
                 pnum = int(input(f"Enter the number of product with pid {pid}: "))
                 prodcut[pid]=pnum
+                # curr_time = time.strftime("%H:%M:%S", time.localtime())
+                # timestamp[pid]=curr_time
                 self.product_history[pid] = {
                     'Owner': [uid],
                     'History': []
@@ -49,6 +52,7 @@ class Blockchain(object):
                 'Name': miner,
                 'Number of Products': prod_num,
                 'Products owned': prodcut,
+                # 'Time_received': timestamp,
                 'Stake': stake
             }
             self.mine = 1
@@ -98,17 +102,25 @@ class Blockchain(object):
                 print("\nThis Transaction is not valid \n")
                 return
             
-            
-                
+            send_time = time.strftime("%H:%M:%S", time.localtime())
+
+            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
+            if client_verdict == 'NO':
+                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
+                self.users[buyer]['Stake'] //= 3
+                return
+
+            receive_time = time.strftime("%H:%M:%S", time.localtime())
+
             trans = {
                 "Transaction_ID": str(uuid4()).replace('-', ''),
-                "Timestamp": datetime.datetime.now(),
+                "Time_send":send_time,
+                "Time_received": receive_time,
                 "Seller ID": seller,
                 "Buyer ID": buyer,
                 "Product ID": pid,
                 "Units": Units,
             }
-            
             self.transactions.append(trans)
             self.product_history[pid]["Owner"].append(buyer)
             self.product_history[pid]["History"].append(trans)
@@ -122,14 +134,9 @@ class Blockchain(object):
             else :
                 self.users[buyer]['Products owned'][pid]=Units
                 self.users[buyer]['Number of Products'] = self.users[seller]['Number of Products'] + 1
-
-            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
-            if client_verdict == 'NO':
-                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
-                self.users[buyer]['Stake'] //= 3
-                
+  
             print("\nThis Transaction is added and validated\n")
-            
+
             if (len(self.transactions) == 3):
                 self.create_timer()
                 print("\nCreating a new block\n")
@@ -192,10 +199,10 @@ class Blockchain(object):
     def print_product_history(self, pid):
         try:
             print()
-            for i in self.users.keys():
-                if self.users[i]['ID'] == self.product_history[pid]['Owner']:
-                    print("The Owner of this Product is: " +
-                          str(self.users[i]['Name']))
+            for i in self.transactions:
+                if self.transactions[i]['Product ID'] == pid:
+                    print(f"{self.users[self.transactions[i]['Seller ID']]['Name']} sent at:  {self.transactions[i]['send_time']}")
+                    print(f" {self.users[self.transactions[i]['Buyer ID']]['Name']} received at: {self.transactions[i]['receive_time']}")
             print("The transaction history of this Product is: ")
             for i in self.product_history[pid]['History']:
                 print(i)
@@ -212,7 +219,6 @@ class Blockchain(object):
             for i in self.users:
                 if pid in self.users[i]['Products owned']:
                     prod_history += f"{self.users[i]['Name']} with ID {i} has {self.users[i]['Products owned'][pid]} units\n"
-            # print(prod_history)
             url = pyqrcode.create(prod_history)
             url.svg("myqr.svg", scale = 8)
             url.png('myqr.png', scale = 6)
@@ -260,6 +266,7 @@ class Blockchain(object):
             print("Name: ", self.users[i]['Name'])
             print("Number of product owned: ",self.users[i]['Number of Products'])
             print("Product IDs: ", self.users[i]['Products owned'])
+            # print("Timestamp", self.users[i]['Time_received'])
             print("User's stake is: ", self.users[i]['Stake'])
         print()
 
