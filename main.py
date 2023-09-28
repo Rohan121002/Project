@@ -17,7 +17,8 @@ class Transaction:
             "product_id": self.product_id,
             "status": self.status,
         }
-    
+    def test(self):
+        print("heyy")
 
 class Block:
     def __init__(self,prev_hash, merkle_root,transactions, timestamp=None, validator=None):
@@ -212,18 +213,18 @@ if __name__ == '__main__':
 
 
             
-# if _name_ == '_main_':
-#     mine = Land_Blockchain()
-#     while True:
-#         print("1. Create a new user")
-#         print("2. Create a new transaction")
-#         print("3. Print the blockchain")
-#         print("4. Print the property history")
-#         print("5. Print the users")
-#         print("6. Validate Blockchain")
-#         print("7. Exit")
-#         choice = int(input("Enter your choice: "))
-#         if (choice == 1):
+if _name_ == '_main_':
+    mine = Land_Blockchain()
+    while True:
+        print("1. Create a new user")
+        print("2. Create a new transaction")
+        print("3. Print the blockchain")
+        print("4. Print the property history")
+        print("5. Print the users")
+        print("6. Validate Blockchain")
+        print("7. Exit")
+        choice = int(input("Enter your choice: "))
+        if (choice == 1):
 #             mine.create_user()
 #         elif (choice == 2):
 #             mine.create_transaction()
