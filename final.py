@@ -24,6 +24,7 @@ class Blockchain(object):
         print()
         self.mine = 0
         try:
+            user_type = int(input("Enter 1 if user is Distributor or 2 if user is client"))
             uid = int(input("Enter the user id of user "))
             miner = str(input("Enter the name of the node: "))
             stake = int(input("Enter the amount which you want to stake")) 
@@ -46,6 +47,7 @@ class Blockchain(object):
             #     }
             self.users[uid] = {
                 'ID': uid,
+                'Type': user_type,
                 'Name': miner,
                 'Number of Products': 0,
                 'Products owned': prodcut,
@@ -101,12 +103,6 @@ class Blockchain(object):
             
             send_time = time.strftime("%H:%M:%S", time.localtime())
 
-            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
-            if client_verdict == 'NO':
-                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
-                self.users[buyer]['Stake'] //= 3
-                return
-
             receive_time = time.strftime("%H:%M:%S", time.localtime())
 
             trans = {
@@ -149,8 +145,6 @@ class Blockchain(object):
             buyer = int(input("Enter the Receiver ID: "))
             pid = int(input("Enter the Property ID: "))
             Units = int(input(f"Enter number of products of {pid} you want to send : "))
-            print("0")
-                
             trans = {
                 "Transaction_ID": str(uuid4()).replace('-', ''),
                 "Timestamp": datetime.datetime.now(),
@@ -165,7 +159,6 @@ class Blockchain(object):
                 'Owner': [buyer],
                 'History': []
             }
-            print("1")
             self.transactions.append(trans)
             self.product_history[pid]["Owner"].append(buyer)
             self.product_history[pid]["History"].append(trans)
@@ -195,6 +188,9 @@ class Blockchain(object):
     def validate_transaction(self, seller, buyer, pid, pnum):
         if (seller == buyer):
             print("You cannot sell the product to yourself")
+            return False
+        if (self.users[seller]['Type']==2):
+            print("You cannot sell the product as you are a client")
             return False
         if pid in self.product_history.keys():
             if seller in self.users.keys() and buyer in self.users.keys():
