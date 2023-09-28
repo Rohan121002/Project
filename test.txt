@@ -1,3 +1,38 @@
+1
+1
+1
+Rohan
+400
+1
+1
+2
+Subal
+700
+1
+2
+3
+Vansh
+700
+2
+1
+1
+10
+YES
+2
+2
+2
+5
+YES
+3
+2
+3
+2
+3
+YES
+
+
+
+
 import hashlib
 import json
 import random
@@ -8,8 +43,6 @@ from uuid import uuid4
 import pyqrcode
 import png
 from pyqrcode import QRCode
-from progress.bar import Bar
-from alive_progress import alive_bar
 
 class Blockchain(object):
     # Constructor
@@ -26,7 +59,6 @@ class Blockchain(object):
         print()
         self.mine = 0
         try:
-            user_type = int(input("Enter 1 if user is Distributor or 2 if user is client"))
             uid = int(input("Enter the user id of user "))
             miner = str(input("Enter the name of the node: "))
             stake = int(input("Enter the amount which you want to stake")) 
@@ -35,23 +67,25 @@ class Blockchain(object):
                     if id==uid:
                         print("The user id already exist. Please try again!")
                         return
-                    
-            # prod_num = int(
-            #     input("Enter the number of products owned by the node: "))
+            
+            prod_num = int(
+                input("Enter the number of products owned by the node: "))
             prodcut = {}
-            # for _ in range(prod_num):
-            #     pid = int(input("Enter the Product id: "))
-            #     pnum = int(input(f"Enter the number of product with pid {pid}: "))
-            #     prodcut[pid]=pnum
-            #     self.product_history[pid] = {
-            #         'Owner': [uid],
-            #         'History': []
-            #     }
+            timestamp = {}
+            for _ in range(prod_num):
+                pid = int(input("Enter the Product id: "))
+                pnum = int(input(f"Enter the number of product with pid {pid}: "))
+                prodcut[pid]=pnum
+                # curr_time = time.strftime("%H:%M:%S", time.localtime())
+                # timestamp[pid]=curr_time
+                self.product_history[pid] = {
+                    'Owner': [uid],
+                    'History': []
+                }
             self.users[uid] = {
                 'ID': uid,
-                'Type': user_type,
                 'Name': miner,
-                'Number of Products': 0,
+                'Number of Products': prod_num,
                 'Products owned': prodcut,
                 # 'Time_received': timestamp,
                 'Stake': stake
@@ -84,9 +118,11 @@ class Blockchain(object):
                     "Merkle root": mtree.getRootHash(),
                     "previous_hash": self.hash(self.chain[-1]['Header']),
                 },
-                "Transaction": self.transactions[-3:]  # 3 transactions
+                "Transaction": self.transactions[:3]  # 3 transactions
             }
+
         self.chain.append(block)
+        del self.transactions[:3]
         return block
 
     # Create transaction
@@ -115,8 +151,6 @@ class Blockchain(object):
                 "Transaction_ID": str(uuid4()).replace('-', ''),
                 "Time_send":send_time,
                 "Time_received": receive_time,
-                "Seller Name":self.users[seller]['Name'],
-                "Buyer Name":self.users[buyer]['Name'],
                 "Seller ID": seller,
                 "Buyer ID": buyer,
                 "Product ID": pid,
@@ -134,73 +168,22 @@ class Blockchain(object):
                 self.users[buyer]['Products owned'][pid]  += Units
             else :
                 self.users[buyer]['Products owned'][pid]=Units
-                self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
-                
+                self.users[buyer]['Number of Products'] = self.users[seller]['Number of Products'] + 1
+  
             print("\nThis Transaction is added and validated\n")
 
-            if (len(self.transactions) % 3 == 0):
+            if (len(self.transactions) == 3):
                 self.create_timer()
                 print("\nCreating a new block\n")
         except:
             print("Enter the correct format of data required to add a new transaction!\n")
 
-    def create_transaction_as_a_manufacture(self):
-        try:
-            buyer = int(input("Enter the Receiver ID: "))
-            pid = int(input("Enter the Property ID: "))
-            Units = int(input(f"Enter number of products of {pid} you want to send : "))
-                
-            send_time = time.strftime("%H:%M:%S", time.localtime())
-
-            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
-            if client_verdict == 'NO':
-                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
-                self.users[buyer]['Stake'] //= 3
-                return
-            receive_time = time.strftime("%H:%M:%S", time.localtime())
-            trans = {
-                "Transaction_ID": str(uuid4()).replace('-', ''),
-                "Time_send":send_time,
-                "Time_received": receive_time,
-                "Seller ID": 0,
-                "Seller Name":"Manufacturer",
-                "Buyer Name":self.users[buyer]['Name'],
-                "Buyer ID": buyer,
-                "Product ID": pid,
-                "Units": Units,
-            }
-            
-            prodcut = {}
-            prodcut[pid]=Units
-            self.product_history[pid] = {
-                'Owner': [buyer],
-                'History': []
-            }
-            self.transactions.append(trans)
-            self.product_history[pid]["Owner"].append(buyer)
-            self.product_history[pid]["History"].append(trans)
-
-            if pid in self.users[buyer]['Products owned']:
-                self.users[buyer]['Products owned'][pid]  += Units
-            else :
-                self.users[buyer]['Products owned'][pid]=Units
-                self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
-
-            print("\nThis Transaction is added and validated\n")
-            if (len(self.transactions) % 3 == 0):
-                self.create_timer()
-                print("\nCreating a new block\n")
-        except:
-            print("Enter the correct format of data required to add a new transaction!\n")
 
 
     # Validate Transaction
     def validate_transaction(self, seller, buyer, pid, pnum):
         if (seller == buyer):
             print("You cannot sell the product to yourself")
-            return False
-        if (self.users[seller]['Type']==2):
-            print("You cannot sell the product as you are a client")
             return False
         if pid in self.product_history.keys():
             if seller in self.users.keys() and buyer in self.users.keys():
@@ -247,17 +230,19 @@ class Blockchain(object):
             print()
         print()
 
-
     # Print Product History
     def print_product_history(self, pid):
         try:
             print()
-            print("The transaction history of this Product is: ")
             for i in self.transactions:
-                if i['Product ID'] == pid:
-                    print(f"{i['Seller Name']} sent {i['Units']} units of {i['Product ID']} at: {i['Time_send']} to {i['Buyer Name']}")
-                    print(f"{i['Buyer Name']} received at: {i['Time_received']}")
-            
+                if self.transactions[i]['Product ID'] == pid:
+                    print(f"{self.users[self.transactions[i]['Seller ID']]['Name']} sent at:  {self.transactions[i]['send_time']}")
+                    print(f" {self.users[self.transactions[i]['Buyer ID']]['Name']} received at: {self.transactions[i]['receive_time']}")
+            print("The transaction history of this Product is: ")
+            for i in self.product_history[pid]['History']:
+                print(i)
+            print()
+
         except:
             print("\nPlease enter the correct inputs!\n")
             
@@ -266,10 +251,9 @@ class Blockchain(object):
         try:
             print()
             prod_history = ""
-            for i in self.transactions:
-                if i['Product ID'] == pid:
-                    prod_history += f"{i['Seller Name']} sent {i['Units']} units of {i['Product ID']} at: {i['Time_send']} to {i['Buyer Name']}\n"
-                    prod_history += f"{i['Buyer Name']} received {i['Units']} units of {i['Product ID']} at: {i['Time_received']} from {i['Seller Name']}\n"
+            for i in self.users:
+                if pid in self.users[i]['Products owned']:
+                    prod_history += f"{self.users[i]['Name']} with ID {i} has {self.users[i]['Products owned'][pid]} units\n"
             url = pyqrcode.create(prod_history)
             url.svg("myqr.svg", scale = 8)
             url.png('myqr.png', scale = 6)
@@ -285,11 +269,10 @@ class Blockchain(object):
 
     # Create Timer for Achieving Consensus
     def create_timer(self):
+        mini = 1
+
         print("\n-------------------Acheiving consensus-------------------\n")
-        with alive_bar(100) as bar:   # default setting
-            for i in range(100):
-                time.sleep(0.03)
-                bar()  
+        time.sleep(mini)
         total_stake = 0
         total_user = 0
         for i in self.users:
@@ -297,12 +280,11 @@ class Blockchain(object):
             total_stake += 2*self.users[i]['Stake']
      
         total_stake//=total_user
-        print()
-        print()
         max_value = 0
         max_Node = None
         for i in self.users:
             random_num = random.randint(1,total_stake)
+            print(random_num + self.users[i]['Stake'])
             if max_value < random_num + self.users[i]['Stake']:
                 max_Node = i
                 max_value = random_num + self.users[i]['Stake']
@@ -319,13 +301,8 @@ class Blockchain(object):
             print("Name: ", self.users[i]['Name'])
             print("Number of product owned: ",self.users[i]['Number of Products'])
             print("Product IDs: ", self.users[i]['Products owned'])
+            # print("Timestamp", self.users[i]['Time_received'])
             print("User's stake is: ", self.users[i]['Stake'])
-            if self.users[i]['Type'] == 1:
-                print(f"{self.users[i]['Name']} is a Distributor" )
-            elif i == 0:
-                print(f"User is the manufacturer")
-            else:
-                print(f"{self.users[i]['Name']} is a Client" )
         print()
 
 
@@ -333,37 +310,34 @@ if __name__ == '__main__':
     mine = Blockchain()
     while True:
         print("1. Create a new user")
-        print("2. Create a new transaction as a manufacture")
-        print("3. Create a new transaction")
-        print("4. Print the blockchain")
-        print("5. Print the product history")
-        print("6. Generate QR for Product Status")
-        print("7. Print the users")
-        print("8. Validate Blockchain")
-        print("9. Exit")
+        print("2. Create a new transaction")
+        print("3. Print the blockchain")
+        print("4. Print the product history")
+        print("5. Generate QR for Product Status")
+        print("6. Print the users")
+        print("7. Validate Blockchain")
+        print("8. Exit")
         choice = int(input("Enter your choice: "))
         if (choice == 1):
             mine.create_user()
         elif (choice == 2):
-            mine.create_transaction_as_a_manufacture()
-        elif (choice == 3):
             mine.create_transaction()
-        elif (choice == 4):
+        elif (choice == 3):
             mine.print_blockchain()
-        elif (choice == 5):
+        elif (choice == 4):
             pid = int(input("Enter the product ID: "))
             mine.print_product_history(pid)
-        elif (choice == 6):
+        elif (choice == 5):
             pid = int(input("Enter the product ID: "))
             mine.generate_QR_Code(pid)
-        elif (choice == 7):
+        elif (choice == 6):
             mine.print_nodes()
-        elif (choice == 8):
+        elif (choice == 7):
             if (mine.validate_chain()):
                 print("\nThe Blockchain is valid!\n")
             else:
                 print("\nThe Blockchain is not valid!\n")
-        elif (choice == 9):
+        elif (choice == 8):
             print("Hope you had a blast using LAND MINE!!")
             break
         else:
