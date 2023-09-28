@@ -10,6 +10,9 @@ import png
 from pyqrcode import QRCode
 from progress.bar import Bar
 from alive_progress import alive_bar
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from PIL import Image
 
 class Blockchain(object):
     # Constructor
@@ -273,7 +276,13 @@ class Blockchain(object):
             url = pyqrcode.create(prod_history)
             url.svg("myqr.svg", scale = 8)
             url.png('myqr.png', scale = 6)
-            print("\n The QR code has been generated in myqr.png file in working directory!")
+            print("\n Please scan the QR code for product history!\n")
+            image_path = "myqr.png"
+            image = mpimg.imread(image_path)
+            plt.grid(False)
+            plt.axis('off')
+            plt.imshow(image)
+            plt.show()
             
         except:
             print("\nPlease enter the correct inputs!\n")
