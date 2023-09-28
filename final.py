@@ -32,25 +32,22 @@ class Blockchain(object):
                     if id==uid:
                         print("The user id already exist. Please try again!")
                         return
-            
-            prod_num = int(
-                input("Enter the number of products owned by the node: "))
+                    
+            # prod_num = int(
+            #     input("Enter the number of products owned by the node: "))
             prodcut = {}
-            timestamp = {}
-            for _ in range(prod_num):
-                pid = int(input("Enter the Product id: "))
-                pnum = int(input(f"Enter the number of product with pid {pid}: "))
-                prodcut[pid]=pnum
-                # curr_time = time.strftime("%H:%M:%S", time.localtime())
-                # timestamp[pid]=curr_time
-                self.product_history[pid] = {
-                    'Owner': [uid],
-                    'History': []
-                }
+            # for _ in range(prod_num):
+            #     pid = int(input("Enter the Product id: "))
+            #     pnum = int(input(f"Enter the number of product with pid {pid}: "))
+            #     prodcut[pid]=pnum
+            #     self.product_history[pid] = {
+            #         'Owner': [uid],
+            #         'History': []
+            #     }
             self.users[uid] = {
                 'ID': uid,
                 'Name': miner,
-                'Number of Products': prod_num,
+                'Number of Products': 0,
                 'Products owned': prodcut,
                 # 'Time_received': timestamp,
                 'Stake': stake
@@ -133,8 +130,13 @@ class Blockchain(object):
                 self.users[buyer]['Products owned'][pid]  += Units
             else :
                 self.users[buyer]['Products owned'][pid]=Units
-                self.users[buyer]['Number of Products'] = self.users[seller]['Number of Products'] + 1
-  
+                self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
+
+            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
+            if client_verdict == 'NO':
+                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
+                self.users[buyer]['Stake'] //= 3
+                
             print("\nThis Transaction is added and validated\n")
 
             if (len(self.transactions) == 3):
@@ -142,7 +144,51 @@ class Blockchain(object):
                 print("\nCreating a new block\n")
         except:
             print("Enter the correct format of data required to add a new transaction!\n")
+    def create_transaction_as_a_manufacture(self):
+        try:
+            buyer = int(input("Enter the Receiver ID: "))
+            pid = int(input("Enter the Property ID: "))
+            Units = int(input(f"Enter number of products of {pid} you want to send : "))
+            print("0")
+                
+            trans = {
+                "Transaction_ID": str(uuid4()).replace('-', ''),
+                "Timestamp": datetime.datetime.now(),
+                "Seller ID": 0,
+                "Buyer ID": buyer,
+                "Product ID": pid,
+                "Units": Units,
+            }
+            prodcut = {}
+            prodcut[pid]=Units
+            self.product_history[pid] = {
+                'Owner': [buyer],
+                'History': []
+            }
+            print("1")
+            self.transactions.append(trans)
+            self.product_history[pid]["Owner"].append(buyer)
+            self.product_history[pid]["History"].append(trans)
 
+
+            if pid in self.users[buyer]['Products owned']:
+                self.users[buyer]['Products owned'][pid]  += Units
+            else :
+                self.users[buyer]['Products owned'][pid]=Units
+                self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
+
+            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
+            if client_verdict == 'NO':
+                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
+                self.users[buyer]['Stake'] //= 3
+
+            print("\nThis Transaction is added and validated\n")
+            print(len(self.transactions))
+            if (len(self.transactions) == 3):
+                self.create_timer()
+                print("\nCreating a new block\n")
+        except:
+            print("Enter the correct format of data required to add a new transaction!\n")
 
 
     # Validate Transaction
@@ -275,34 +321,37 @@ if __name__ == '__main__':
     mine = Blockchain()
     while True:
         print("1. Create a new user")
-        print("2. Create a new transaction")
-        print("3. Print the blockchain")
-        print("4. Print the product history")
-        print("5. Generate QR for Product Status")
-        print("6. Print the users")
-        print("7. Validate Blockchain")
-        print("8. Exit")
+        print("2. Create a new transaction as a manufacture")
+        print("3. Create a new transaction")
+        print("4. Print the blockchain")
+        print("5. Print the product history")
+        print("6. Generate QR for Product Status")
+        print("7. Print the users")
+        print("8. Validate Blockchain")
+        print("9. Exit")
         choice = int(input("Enter your choice: "))
         if (choice == 1):
             mine.create_user()
         elif (choice == 2):
-            mine.create_transaction()
+            mine.create_transaction_as_a_manufacture()
         elif (choice == 3):
-            mine.print_blockchain()
+            mine.create_transaction()
         elif (choice == 4):
-            pid = int(input("Enter the product ID: "))
-            mine.print_product_history(pid)
+            mine.print_blockchain()
         elif (choice == 5):
             pid = int(input("Enter the product ID: "))
-            mine.generate_QR_Code(pid)
+            mine.print_product_history(pid)
         elif (choice == 6):
-            mine.print_nodes()
+            pid = int(input("Enter the product ID: "))
+            mine.generate_QR_Code(pid)
         elif (choice == 7):
+            mine.print_nodes()
+        elif (choice == 8):
             if (mine.validate_chain()):
                 print("\nThe Blockchain is valid!\n")
             else:
                 print("\nThe Blockchain is not valid!\n")
-        elif (choice == 8):
+        elif (choice == 9):
             print("Hope you had a blast using LAND MINE!!")
             break
         else:
