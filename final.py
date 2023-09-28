@@ -80,11 +80,9 @@ class Blockchain(object):
                     "Merkle root": mtree.getRootHash(),
                     "previous_hash": self.hash(self.chain[-1]['Header']),
                 },
-                "Transaction": self.transactions[:3]  # 3 transactions
+                "Transaction": self.transactions[-3:]  # 3 transactions
             }
-
         self.chain.append(block)
-        del self.transactions[:3]
         return block
 
     # Create transaction
@@ -113,6 +111,8 @@ class Blockchain(object):
                 "Transaction_ID": str(uuid4()).replace('-', ''),
                 "Time_send":send_time,
                 "Time_received": receive_time,
+                "Seller Name":self.users[seller]['Name'],
+                "Buyer Name":self.users[buyer]['Name'],
                 "Seller ID": seller,
                 "Buyer ID": buyer,
                 "Product ID": pid,
@@ -131,45 +131,50 @@ class Blockchain(object):
             else :
                 self.users[buyer]['Products owned'][pid]=Units
                 self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
-
-            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
-            if client_verdict == 'NO':
-                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
-                self.users[buyer]['Stake'] //= 3
                 
             print("\nThis Transaction is added and validated\n")
 
-            if (len(self.transactions) == 3):
+            if (len(self.transactions) % 3 == 0):
                 self.create_timer()
                 print("\nCreating a new block\n")
         except:
             print("Enter the correct format of data required to add a new transaction!\n")
+
     def create_transaction_as_a_manufacture(self):
         try:
             buyer = int(input("Enter the Receiver ID: "))
             pid = int(input("Enter the Property ID: "))
             Units = int(input(f"Enter number of products of {pid} you want to send : "))
-            print("0")
                 
+            send_time = time.strftime("%H:%M:%S", time.localtime())
+
+            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
+            if client_verdict == 'NO':
+                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
+                self.users[buyer]['Stake'] //= 3
+                return
+            receive_time = time.strftime("%H:%M:%S", time.localtime())
             trans = {
                 "Transaction_ID": str(uuid4()).replace('-', ''),
-                "Timestamp": datetime.datetime.now(),
+                "Time_send":send_time,
+                "Time_received": receive_time,
                 "Seller ID": 0,
+                "Seller Name":"Manufacturer",
+                "Buyer Name":self.users[buyer]['Name'],
                 "Buyer ID": buyer,
                 "Product ID": pid,
                 "Units": Units,
             }
+            
             prodcut = {}
             prodcut[pid]=Units
             self.product_history[pid] = {
                 'Owner': [buyer],
                 'History': []
             }
-            print("1")
             self.transactions.append(trans)
             self.product_history[pid]["Owner"].append(buyer)
             self.product_history[pid]["History"].append(trans)
-
 
             if pid in self.users[buyer]['Products owned']:
                 self.users[buyer]['Products owned'][pid]  += Units
@@ -177,14 +182,8 @@ class Blockchain(object):
                 self.users[buyer]['Products owned'][pid]=Units
                 self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
 
-            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
-            if client_verdict == 'NO':
-                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
-                self.users[buyer]['Stake'] //= 3
-
             print("\nThis Transaction is added and validated\n")
-            print(len(self.transactions))
-            if (len(self.transactions) == 3):
+            if (len(self.transactions) % 3 == 0):
                 self.create_timer()
                 print("\nCreating a new block\n")
         except:
@@ -245,15 +244,12 @@ class Blockchain(object):
     def print_product_history(self, pid):
         try:
             print()
-            for i in self.transactions:
-                if self.transactions[i]['Product ID'] == pid:
-                    print(f"{self.users[self.transactions[i]['Seller ID']]['Name']} sent at:  {self.transactions[i]['send_time']}")
-                    print(f" {self.users[self.transactions[i]['Buyer ID']]['Name']} received at: {self.transactions[i]['receive_time']}")
             print("The transaction history of this Product is: ")
-            for i in self.product_history[pid]['History']:
-                print(i)
-            print()
-
+            for i in self.transactions:
+                if i['Product ID'] == pid:
+                    print(f"{i['Seller Name']} sent {i['Units']} units of {i['Product ID']} at: {i['Time_send']} to {i['Buyer Name']}")
+                    print(f"{i['Buyer Name']} received at: {i['Time_received']}")
+            
         except:
             print("\nPlease enter the correct inputs!\n")
             
@@ -280,8 +276,7 @@ class Blockchain(object):
 
     # Create Timer for Achieving Consensus
     def create_timer(self):
-        mini = 1
-
+        mini = 3
         print("\n-------------------Acheiving consensus-------------------\n")
         time.sleep(mini)
         total_stake = 0
