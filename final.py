@@ -13,6 +13,7 @@ from alive_progress import alive_bar
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from PIL import Image
+import rsa
 
 class Blockchain(object):
     # Constructor
@@ -33,6 +34,7 @@ class Blockchain(object):
             uid = int(input("Enter the user id of user "))
             miner = str(input("Enter the name of the node: "))
             stake = int(input("Enter the amount which you want to stake")) 
+            (pubkey, __privkey) = rsa.newkeys(1024)
             if not (len(self.users)== 0):
                 for id in self.users:
                     if id==uid:
@@ -57,7 +59,10 @@ class Blockchain(object):
                 'Number of Products': 0,
                 'Products owned': prodcut,
                 # 'Time_received': timestamp,
-                'Stake': stake
+                'Stake': stake,
+                'Public_Key':pubkey,
+                'Private_Key':__privkey,
+                # (pubkey, privkey) : rsa.newkeys(512)
             }
             self.mine = 1
             print("The node was added to the blockchain\n")
@@ -103,28 +108,38 @@ class Blockchain(object):
             if (not self.validate_transaction(seller, buyer, pid,Units)):
                 print("\nThis Transaction is not valid \n")
                 return
+            message = str(buyer) + str(pid*Units*100) +str(seller*10)
+            message = message[:50]
+            message = message.encode('utf8')
             
             send_time = time.strftime("%H:%M:%S", time.localtime())
-
-            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
-            if client_verdict == 'NO':
-                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
-                self.users[buyer]['Stake'] //= 3
-                return
-
-            receive_time = time.strftime("%H:%M:%S", time.localtime())
 
             trans = {
                 "Transaction_ID": str(uuid4()).replace('-', ''),
                 "Time_send":send_time,
-                "Time_received": receive_time,
+                "Time_received": None,
                 "Seller Name":self.users[seller]['Name'],
                 "Buyer Name":self.users[buyer]['Name'],
                 "Seller ID": seller,
                 "Buyer ID": buyer,
                 "Product ID": pid,
                 "Units": Units,
+                "Sender_Signature":rsa.sign(message, self.users[seller]['Private_Key'], 'SHA-1'),
+                "Receiver_Signature":None,
             }
+            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} wants {Units} units of product with Product ID - {pid} else 'NO': "))
+            if client_verdict == 'NO':
+                print(f"\n The product has been rejected by you as per your request {self.users[buyer]['Name']}")
+                # self.users[buyer]['Stake'] //= 3
+                return
+
+            receive_time = time.strftime("%H:%M:%S", time.localtime())
+            trans['Time_received'] = receive_time
+            message = "I recieved " + str(pid) + " product with " +str(Units) +  " units from " + str(buyer) + " at " + str(receive_time)
+            message = message[:50]
+            message = message.encode('utf8')
+            trans['Receiver_Signature'] = rsa.sign(message, self.users[buyer]['Private_Key'], 'SHA-1')
+            
             self.transactions.append(trans)
             self.product_history[pid]["Owner"].append(buyer)
             self.product_history[pid]["History"].append(trans)
@@ -154,24 +169,34 @@ class Blockchain(object):
             Units = int(input(f"Enter number of products of {pid} you want to send : "))
                 
             send_time = time.strftime("%H:%M:%S", time.localtime())
-
-            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} received {Units} units of product with Product ID - {pid} else 'NO': "))
-            if client_verdict == 'NO':
-                print(f"\n The Buyer is lying as the product has been added to buyer {self.users[buyer]['Name']}")
-                self.users[buyer]['Stake'] //= 3
-                return
-            receive_time = time.strftime("%H:%M:%S", time.localtime())
+            message = str(buyer) + str(pid*Units*100)
+            message = message[:50]
+            message = message.encode('utf8')
+            # print(message) 
             trans = {
                 "Transaction_ID": str(uuid4()).replace('-', ''),
                 "Time_send":send_time,
-                "Time_received": receive_time,
+                "Time_received": None,
                 "Seller ID": 0,
                 "Seller Name":"Manufacturer",
                 "Buyer Name":self.users[buyer]['Name'],
                 "Buyer ID": buyer,
                 "Product ID": pid,
                 "Units": Units,
+                # "Sender_Signature":rsa.sign(message, 0, 'SHA-1'),
+                "Receiver_Signature":None,
             }
+            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} wants {Units} units of product with Product ID - {pid} else 'NO': "))
+            if client_verdict == 'NO':
+                print(f"\n The product has been rejected by you as per your request {self.users[buyer]['Name']}")
+                # self.users[buyer]['Stake'] //= 3
+                return
+            receive_time = time.strftime("%H:%M:%S", time.localtime())
+            trans['Time_received'] = receive_time
+            message = "I recieved " + str(pid) + " product with " +str(Units) +  " units from " + str(buyer) + " at " + str(receive_time)
+            message = message[:50]
+            message = message.encode('utf8')
+            trans['Receiver_Signature'] = rsa.sign(message, self.users[buyer]['Private_Key'], 'SHA-1')
             
             prodcut = {}
             prodcut[pid]=Units
