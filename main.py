@@ -141,27 +141,27 @@ class Blockchain:
         self.pending_transactions = [Transaction(None, miner.public_key, self.mining_reward)]
         return True
 
-    # def create_transaction(self, sender, receiver, amount,signature):
-    #     if sender == receiver:
-    #         return False
+    def create_transaction(self, sender, receiver, amount,signature):
+        if sender == receiver:
+            return False
 
-    #     sender_balance = self.get_balance(sender)
-    #     if sender_balance < amount:
-    #         return False
+        sender_balance = self.get_balance(sender)
+        if sender_balance < amount:
+            return False
 
-    #     transaction = Transaction(sender, receiver, amount,signature)
-    #     self.pending_transactions.append(transaction)
-    #     return True
+        transaction = Transaction(sender, receiver, amount,signature)
+        self.pending_transactions.append(transaction)
+        return True
 
-    # def get_balance(self, address):
-    #     balance = 0
-    #     for block in self.chain:
-    #         for transaction in block.transactions:
-    #             if transaction.sender == address:
-    #                 balance -= transaction.amount
-    #             if transaction.receiver == address:
-    #                 balance += transaction.amount
-    #     return balance
+    def get_balance(self, address):
+        balance = 0
+        for block in self.chain:
+            for transaction in block.transactions:
+                if transaction.sender == address:
+                    balance -= transaction.amount
+                if transaction.receiver == address:
+                    balance += transaction.amount
+        return balance
 
 class LieDetectionContract:
     def __init__(self):
