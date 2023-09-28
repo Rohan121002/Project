@@ -17,7 +17,7 @@ class Blockchain(object):
         self.users = {}
         self.product_history = {}
         self.node_id = 1
-        self.prop_ctr = 1
+        self.prod_ctr = 1
 
     # Create user
     def create_user(self):
@@ -33,13 +33,13 @@ class Blockchain(object):
                         print("The user id already exist. Please try again!")
                         return
                     
-            props_num = int(
-                input("Enter the number of properties owned by the node: "))
-            props = {}
-            for _ in range(props_num):
+            prod_num = int(
+                input("Enter the number of products owned by the node: "))
+            prodcut = {}
+            for _ in range(prod_num):
                 pid = int(input("Enter the Product id: "))
                 pnum = int(input(f"Enter the number of product with pid {pid}: "))
-                props[pid]=pnum
+                prodcut[pid]=pnum
                 self.product_history[pid] = {
                     'Owner': [uid],
                     'History': []
@@ -47,8 +47,8 @@ class Blockchain(object):
             self.users[uid] = {
                 'ID': uid,
                 'Name': miner,
-                'Number of Products': props_num,
-                'Products owned': props,
+                'Number of Products': prod_num,
+                'Products owned': prodcut,
                 'Stake': stake
             }
             self.mine = 1
@@ -188,7 +188,7 @@ class Blockchain(object):
             print()
         print()
 
-    # Print Property History
+    # Print Product History
     def print_product_history(self, pid):
         try:
             print()
