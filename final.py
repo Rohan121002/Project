@@ -30,10 +30,10 @@ class Blockchain(object):
         print()
         self.mine = 0
         try:
-            user_type = int(input("Enter 1 if user is Distributor or 2 if user is client"))
-            uid = int(input("Enter the user id of user "))
+            user_type = int(input("Enter 1 if user is Distributor or 2 if user is client: "))
+            uid = int(input("Enter the user id of user: "))
             miner = str(input("Enter the name of the node: "))
-            stake = int(input("Enter the amount which you want to stake")) 
+            stake = int(input("Enter the amount which you want to stake: ")) 
             (pubkey, __privkey) = rsa.newkeys(1024)
             if not (len(self.users)== 0):
                 for id in self.users:
@@ -294,10 +294,13 @@ class Blockchain(object):
         try:
             print()
             prod_history = ""
+            trans_no = 1;
             for i in self.transactions:
                 if i['Product ID'] == pid:
-                    prod_history += f"{i['Seller Name']} sent {i['Units']} units of {i['Product ID']} at: {i['Time_send']} to {i['Buyer Name']}\n"
-                    prod_history += f"{i['Buyer Name']} received {i['Units']} units of {i['Product ID']} at: {i['Time_received']} from {i['Seller Name']}\n"
+                    prod_history += f"\n-------------------Transaction No: {trans_no}-------------------\n"
+                    prod_history += f"{i['Seller Name']} sent {i['Units']} units of {i['Product ID']} at: {i['Time_send']} to {i['Buyer Name']}.\n\n"
+                    prod_history += f"{i['Buyer Name']} received {i['Units']} units of {i['Product ID']} at: {i['Time_received']} from {i['Seller Name']}.\n\n"
+                    trans_no += 1
             url = pyqrcode.create(prod_history)
             url.svg("myqr.svg", scale = 8)
             url.png('myqr.png', scale = 6)
@@ -348,7 +351,10 @@ class Blockchain(object):
     # Print Users
     def print_nodes(self):
         print()
+        user_no = 1
         for i in self.users.keys():
+            print(f"-------------User - {user_no}--------------")
+            user_no += 1
             print("User ID: ", i)
             print("Name: ", self.users[i]['Name'])
             print("Number of product owned: ",self.users[i]['Number of Products'])
@@ -360,6 +366,7 @@ class Blockchain(object):
                 print(f"User is the manufacturer")
             else:
                 print(f"{self.users[i]['Name']} is a Client" )
+            print("\n\n")
         print()
 
 
