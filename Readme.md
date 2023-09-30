@@ -5,6 +5,14 @@
 ### Subal Tankwal        2021A7PS1407H 
 ### Sparsh Khandelwal    2021A7PS1320H 
 ### Vansh Gupta          2021A7PS2615H 
+
+# Features in this project: 
+1.  Register new clients, distributors: **create_user** function
+2.  POS concensus algorithm implemented : **create_timer** function *line 340*
+3. Implemented merkle tree to calculate hash : **merkle tree file**
+4. View current product status using QRcode : **generate_QR_Code** and *pyqrcode* library
+5. Create transaction from distributor to client: **create_transaction**
+6. Lie detection: whether distributor or client is lying or not. If yes then deduct from security deposit: **create_transaction** function
 ## final file:
 ## Class BlockChain:
  ### create_user
@@ -21,6 +29,7 @@
  ### create_transaction
   This function takes the buyer id, seller id, product id and number of products. The transaction created is between a distributor and a client.
   The transaction also stores the time of transaction. Also it takes the signature of the sender.
+  This function implements the lie detection feature.
  ### create_transaction_as_a_manufacture
   This function creates a transaction between manufacturer and distributor. It takes receiver id, product id and units as input since we know that the sender is manufacturer and there is only 1 manufacturer.
  ### validate_transaction
@@ -37,3 +46,12 @@
 
 ## merkle_tree file:
 
+### Class Node:
+ defines a node with left, right and a value
+### Class MerkleTree: 
+#### hash : 
+returns SHA256 encoded value
+#### buildTree:
+recursive function to create the tree
+#### getRootHash
+returns root value
