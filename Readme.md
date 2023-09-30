@@ -24,8 +24,8 @@
     3- stake of the user
 
 
- ### Create_block
-   This creates a new block and adds it in the merkle tree. Transactions are added to block when thy are in a multiple of 3.
+ ### create_new_block
+   This creates a new block. Transactions are added to block when thy are in a multiple of 3. It creates a header which includes an index, timestamp, previous hash, and merkle root.
  ### create_transaction
   This function takes the buyer id, seller id, product id and number of products. The transaction created is between a distributor and a client.
   The transaction also stores the time of transaction. Also it takes the signature of the sender.
