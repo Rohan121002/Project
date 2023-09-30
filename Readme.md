@@ -57,7 +57,7 @@
  ### generate_QR_Code
  Whatever the information is stored in the product_history part of the program is represented in the form of QR Code using this functionality which can be scanned to read all the details. Feature 4 is implemented using this function.
  ### hash
- This function takes 'block' as the input and creates the hash value of the input. The input can be any transaction, 
+ This function takes 'block' as the input and creates the hash value of the input. The input can be any transaction, a whole block, or merkle tree. 
  ### create_timer
  This functions implements the actual consensus algorithm by allowing the person with the highest number of stakes to be the miner. For this, we calculate the total number of stakes of all the user, then double it and divide by the number of users.
 Then we create a randomize function ranging between 1 and the above value to add this value to their individual stakes. Hence, each user has the chance to become miner with some probability
