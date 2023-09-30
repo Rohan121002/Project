@@ -43,6 +43,7 @@ class Blockchain(object):
                         return
                     
             product = {}
+
             self.users[uid] = {
                 'ID': uid,
                 'Type': user_type,
@@ -53,6 +54,7 @@ class Blockchain(object):
                 'Public_Key':pubkey,
                 'Private_Key':__privkey,
             }
+
             self.mine = 1
             print("The node was added to the blockchain\n")
             print(self.users[uid]['Name'] + "'s ID is " +
@@ -93,7 +95,7 @@ class Blockchain(object):
         try:
             seller = int(input("\nEnter the Seller ID: "))
             buyer = int(input("Enter the Receiver ID: "))
-            pid = int(input("Enter the Property ID: "))
+            pid = int(input("Enter the product ID: "))
             Units = int(input(f"Enter number of products of {pid} you want to send : "))
             
             if (not self.validate_transaction(seller, buyer, pid,Units)):
@@ -172,7 +174,7 @@ class Blockchain(object):
     def create_transaction_as_a_manufacture(self):
         try:
             buyer = int(input("Enter the Receiver ID: "))
-            pid = int(input("Enter the Property ID: "))
+            pid = int(input("Enter the product ID: "))
             Units = int(input(f"Enter number of products of {pid} you want to send : "))
                 
             send_time = time.strftime("%H:%M:%S", time.localtime())
@@ -207,8 +209,8 @@ class Blockchain(object):
                 message = message.encode('utf8')
                 trans['Receiver_Signature'] = rsa.sign(message, self.users[buyer]['Private_Key'], 'SHA-1')
                 
-                prodcut = {}
-                prodcut[pid]=Units
+                product = {}
+                product[pid]=Units
                 self.product_history[pid] = {
                     'Owner': [buyer],
                     'History': []
