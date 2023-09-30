@@ -15,8 +15,9 @@ import matplotlib.image as mpimg
 from PIL import Image
 import rsa
 
+# This is the main and the only class which has all the required functions of a blockchain.
 class Blockchain(object):
-    # Constructor
+    # Constructor: basic lists and dictionaries are defined here
     def __init__(self):
         self.chain = []
         self.transactions = []
@@ -25,7 +26,7 @@ class Blockchain(object):
         self.node_id = 1
         self.prod_ctr = 1
 
-    # Create user
+    # Create user: User is created 
     def create_user(self):
         print()
         self.mine = 0
@@ -41,28 +42,16 @@ class Blockchain(object):
                         print("The user id already exist. Please try again!")
                         return
                     
-            # prod_num = int(
-            #     input("Enter the number of products owned by the node: "))
-            prodcut = {}
-            # for _ in range(prod_num):
-            #     pid = int(input("Enter the Product id: "))
-            #     pnum = int(input(f"Enter the number of product with pid {pid}: "))
-            #     prodcut[pid]=pnum
-            #     self.product_history[pid] = {
-            #         'Owner': [uid],
-            #         'History': []
-            #     }
+            product = {}
             self.users[uid] = {
                 'ID': uid,
                 'Type': user_type,
                 'Name': miner,
                 'Number of Products': 0,
-                'Products owned': prodcut,
-                # 'Time_received': timestamp,
+                'Products owned': product,
                 'Stake': stake,
                 'Public_Key':pubkey,
                 'Private_Key':__privkey,
-                # (pubkey, privkey) : rsa.newkeys(512)
             }
             self.mine = 1
             print("The node was added to the blockchain\n")
@@ -71,7 +60,8 @@ class Blockchain(object):
         except:
             print("Enter the correct format of data required to add a new node!\n")
 
-    # Create New Block
+
+    # Create New Block: After every 3 transactions a new Block is created.
     def create_new_block(self, previous_hash=None):
         mtree = merkle_tree.MerkleTree(self.hash(self.transactions[:3]))
         if (len(self.chain) == 0):
@@ -96,8 +86,9 @@ class Blockchain(object):
             }
         self.chain.append(block)
         return block
+    
 
-    # Create transaction
+    # Create transaction: using this we initiate a transaction between distributor & client.
     def create_transaction(self):
         try:
             seller = int(input("\nEnter the Seller ID: "))
@@ -162,6 +153,8 @@ class Blockchain(object):
         except:
             print("Enter the correct format of data required to add a new transaction!\n")
 
+
+    # Create transaction: using this we initiate a transaction between Manufacturer & distributor.
     def create_transaction_as_a_manufacture(self):
         try:
             buyer = int(input("Enter the Receiver ID: "))
@@ -198,8 +191,8 @@ class Blockchain(object):
             message = message.encode('utf8')
             trans['Receiver_Signature'] = rsa.sign(message, self.users[buyer]['Private_Key'], 'SHA-1')
             
-            prodcut = {}
-            prodcut[pid]=Units
+            product = {}
+            product[pid]=Units
             self.product_history[pid] = {
                 'Owner': [buyer],
                 'History': []
@@ -222,7 +215,7 @@ class Blockchain(object):
             print("Enter the correct format of data required to add a new transaction!\n")
 
 
-    # Validate Transaction
+    # Validate Transaction: each transaction is validated based on different criteria.
     def validate_transaction(self, seller, buyer, pid, pnum):
         if (seller == buyer):
             print("You cannot sell the product to yourself")
@@ -243,6 +236,7 @@ class Blockchain(object):
 
                 print("\nThe seller does not have this product!")
         return False
+    
 
     # Validate Chain
     def validate_chain(self):
@@ -259,8 +253,9 @@ class Blockchain(object):
                 return False
             previous_block = current_block
         return True
+    
 
-    # Print Blockchain
+    # Print Blockchain: Full blockchain upto that point of time is printed.
     def print_blockchain(self):
         print()
         if (len(self.chain) == 0):
@@ -276,20 +271,21 @@ class Blockchain(object):
         print()
 
 
-    # Print Product History
+    # Print Product History: All the transactions of a product are printed.
     def print_product_history(self, pid):
         try:
-            print()
-            print("The transaction history of this Product is: ")
+            print("\n--------------------\n")
+            print("The transaction history of this Product is: \n")
             for i in self.transactions:
                 if i['Product ID'] == pid:
                     print(f"{i['Seller Name']} sent {i['Units']} units of {i['Product ID']} at: {i['Time_send']} to {i['Buyer Name']}")
-                    print(f"{i['Buyer Name']} received at: {i['Time_received']}")
-            
+                    print(f"{i['Buyer Name']} received at: {i['Time_received']}\n")
+            print("---------------------\n")
         except:
             print("\nPlease enter the correct inputs!\n")
+
             
-            
+    # This function generates a QR code for product history.
     def generate_QR_Code(self, pid):
         try:
             print()
@@ -314,16 +310,18 @@ class Blockchain(object):
             
         except:
             print("\nPlease enter the correct inputs!\n")
-    # Hash Function
 
+
+    # Hash Function: This function creates hash of the block
     def hash(self, block):
         strg = json.dumps(block, sort_keys=True, default=str).encode()
         return hashlib.sha256(strg).hexdigest()
+    
 
-    # Create Timer for Achieving Consensus
+    # For Achieving Consensus: POS(Proof of Stake) - here consensus algorithm is implemented (for detailed explanation refer to .Readme file)
     def create_timer(self):
         print("\n-------------------Acheiving consensus-------------------\n")
-        with alive_bar(100) as bar:   # default setting
+        with alive_bar(100) as bar:  
             for i in range(100):
                 time.sleep(0.03)
                 bar()  
@@ -348,7 +346,7 @@ class Blockchain(object):
         self.users[max_Node]['Stake'] += total_stake//total_user
         self.create_new_block()
 
-    # Print Users
+    # Print Users: It prints the information of all the users in the blockchain
     def print_nodes(self):
         print()
         user_no = 1
@@ -369,7 +367,7 @@ class Blockchain(object):
             print("\n\n")
         print()
 
-
+# Main function : execution starts here
 if __name__ == '__main__':
     mine = Blockchain()
     while True:
@@ -405,8 +403,9 @@ if __name__ == '__main__':
             else:
                 print("\nThe Blockchain is not valid!\n")
         elif (choice == 9):
-            print("Hope you had a blast using LAND MINE!!")
+            print("\n------- Thank You! See u soon -------\n")
             break
         else:
             print("Invalid choice")
 
+    # The End ............. Thank You!!!
