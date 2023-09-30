@@ -99,10 +99,14 @@ class Blockchain(object):
             if (not self.validate_transaction(seller, buyer, pid,Units)):
                 print("\nThis Transaction is not valid \n")
                 return
-            message = str(buyer) + str(pid*Units*100) +str(seller*10)
-            message = message[:50]
-            message = message.encode('utf8')
-            
+            distibuter_verdict = int(input("To sign the transcation type 1 else 0"))
+            if(distibuter_verdict==1):
+                message = str(buyer) + str(pid*Units*100) +str(seller*10)
+                message = message[:50]
+                message = message.encode('utf8')
+                message = rsa.sign(message, self.users[seller]['Private_Key'], 'SHA-1')
+            else:
+                message = None
             send_time = time.strftime("%H:%M:%S", time.localtime())
 
             trans = {
@@ -115,41 +119,51 @@ class Blockchain(object):
                 "Buyer ID": buyer,
                 "Product ID": pid,
                 "Units": Units,
-                "Sender_Signature":rsa.sign(message, self.users[seller]['Private_Key'], 'SHA-1'),
+                "Sender_Signature":message,
                 "Receiver_Signature":None,
             }
-            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} wants {Units} units of product with Product ID - {pid} else 'NO': "))
-            if client_verdict == 'NO':
-                print(f"\n The product has been rejected by you as per your request {self.users[buyer]['Name']}")
-                # self.users[buyer]['Stake'] //= 3
+            client_verdict = str(input(f"Type 'YES' if you - {self.users[buyer]['Name']} recieved {Units} units of product with Product ID - {pid} else 'NO': "))
+            client_m = str(buyer) + str(pid*Units*100) +str(seller*10)
+            client_m = client_m[:50]
+            client_m = client_m.encode('utf8')
+            if client_verdict == 'NO' and message == None:
+                print(f"\n The selller {self.users[seller]['Name']} is lying ")
+                self.users[seller]['Stake'] //= 3
                 return
+            elif client_verdict == 'NO' and message != None:
+                print(f"The buyer - {self.users[buyer]['Name']} is lying as the sender has sent the products with his signature. ")
+                self.users[buyer]['Stake'] //= 3
+                return 
+            elif client_verdict == 'YES' and message == None:
+                print(f"You can't recieve the product as there is no signature on transaction hence transaction is terminated. ")
+                return
+            elif client_verdict == 'YES' and message != None:
+                receive_time = time.strftime("%H:%M:%S", time.localtime())
+                trans['Time_received'] = receive_time
+                message = "I recieved " + str(pid) + " product with " +str(Units) +  " units from " + str(buyer) + " at " + str(receive_time)
+                message = message[:50]
+                message = message.encode('utf8')
+                trans['Receiver_Signature'] = rsa.sign(message, self.users[buyer]['Private_Key'], 'SHA-1')
 
-            receive_time = time.strftime("%H:%M:%S", time.localtime())
-            trans['Time_received'] = receive_time
-            message = "I recieved " + str(pid) + " product with " +str(Units) +  " units from " + str(buyer) + " at " + str(receive_time)
-            message = message[:50]
-            message = message.encode('utf8')
-            trans['Receiver_Signature'] = rsa.sign(message, self.users[buyer]['Private_Key'], 'SHA-1')
-            
-            self.transactions.append(trans)
-            self.product_history[pid]["Owner"].append(buyer)
-            self.product_history[pid]["History"].append(trans)
-            self.users[seller]['Products owned'][pid] -= Units
-            if self.users[seller]['Products owned'][pid]==0:
-                self.users[seller]['Products owned'].pop(pid)
-                self.users[seller]['Number of Products'] = self.users[seller]['Number of Products'] - 1
-                
-            if pid in self.users[buyer]['Products owned']:
-                self.users[buyer]['Products owned'][pid]  += Units
-            else :
-                self.users[buyer]['Products owned'][pid]=Units
-                self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
-                
-            print("\nThis Transaction is added and validated\n")
+                self.transactions.append(trans)
+                self.product_history[pid]["Owner"].append(buyer)
+                self.product_history[pid]["History"].append(trans)
+                self.users[seller]['Products owned'][pid] -= Units
+                if self.users[seller]['Products owned'][pid]==0:
+                    self.users[seller]['Products owned'].pop(pid)
+                    self.users[seller]['Number of Products'] = self.users[seller]['Number of Products'] - 1
+                    
+                if pid in self.users[buyer]['Products owned']:
+                    self.users[buyer]['Products owned'][pid]  += Units
+                else :
+                    self.users[buyer]['Products owned'][pid]=Units
+                    self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
+                    
+                print("\nThis Transaction is added and validated\n")
 
-            if (len(self.transactions) % 3 == 0):
-                self.create_timer()
-                print("\nCreating a new block\n")
+                if (len(self.transactions) % 3 == 0):
+                    self.create_timer()
+                    print("\nCreating a new block\n")
         except:
             print("Enter the correct format of data required to add a new transaction!\n")
 
@@ -179,38 +193,40 @@ class Blockchain(object):
                 # "Sender_Signature":rsa.sign(message, 0, 'SHA-1'),
                 "Receiver_Signature":None,
             }
-            client_verdict = str(input(f"Type 'YES' if the Buyer - {self.users[buyer]['Name']} wants {Units} units of product with Product ID - {pid} else 'NO': "))
+            client_verdict = str(input(f"Type 'YES' if you - {self.users[buyer]['Name']} recieved {Units} units of product with Product ID - {pid} else 'NO': "))
             if client_verdict == 'NO':
-                print(f"\n The product has been rejected by you as per your request {self.users[buyer]['Name']}")
-                # self.users[buyer]['Stake'] //= 3
-                return
-            receive_time = time.strftime("%H:%M:%S", time.localtime())
-            trans['Time_received'] = receive_time
-            message = "I recieved " + str(pid) + " product with " +str(Units) +  " units from " + str(buyer) + " at " + str(receive_time)
-            message = message[:50]
-            message = message.encode('utf8')
-            trans['Receiver_Signature'] = rsa.sign(message, self.users[buyer]['Private_Key'], 'SHA-1')
-            
-            product = {}
-            product[pid]=Units
-            self.product_history[pid] = {
-                'Owner': [buyer],
-                'History': []
-            }
-            self.transactions.append(trans)
-            self.product_history[pid]["Owner"].append(buyer)
-            self.product_history[pid]["History"].append(trans)
+                print(f"The buyer - {self.users[buyer]['Name']} is lying as the sender has sent the products. ")
+                self.users[buyer]['Stake'] //= 3
+                return 
+            elif client_verdict == 'YES':
+                
+                receive_time = time.strftime("%H:%M:%S", time.localtime())
+                trans['Time_received'] = receive_time
+                message = "I recieved " + str(pid) + " product with " +str(Units) +  " units from " + str(buyer) + " at " + str(receive_time)
+                message = message[:50]
+                message = message.encode('utf8')
+                trans['Receiver_Signature'] = rsa.sign(message, self.users[buyer]['Private_Key'], 'SHA-1')
+                
+                prodcut = {}
+                prodcut[pid]=Units
+                self.product_history[pid] = {
+                    'Owner': [buyer],
+                    'History': []
+                }
+                self.transactions.append(trans)
+                self.product_history[pid]["Owner"].append(buyer)
+                self.product_history[pid]["History"].append(trans)
 
-            if pid in self.users[buyer]['Products owned']:
-                self.users[buyer]['Products owned'][pid]  += Units
-            else :
-                self.users[buyer]['Products owned'][pid]=Units
-                self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
+                if pid in self.users[buyer]['Products owned']:
+                    self.users[buyer]['Products owned'][pid]  += Units
+                else :
+                    self.users[buyer]['Products owned'][pid]=Units
+                    self.users[buyer]['Number of Products'] = self.users[buyer]['Number of Products'] + 1
 
-            print("\nThis Transaction is added and validated\n")
-            if (len(self.transactions) % 3 == 0):
-                self.create_timer()
-                print("\nCreating a new block\n")
+                print("\nThis Transaction is added and validated\n")
+                if (len(self.transactions) % 3 == 0):
+                    self.create_timer()
+                    print("\nCreating a new block\n")
         except:
             print("Enter the correct format of data required to add a new transaction!\n")
 
