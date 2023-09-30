@@ -27,9 +27,21 @@
  ### create_new_block
    This creates a new block. Transactions are added to block when thy are in a multiple of 3. It creates a header which includes an index, timestamp, previous hash, and merkle root.
  ### create_transaction
-  This function takes the buyer id, seller id, product id and number of products. The transaction created is between a distributor and a client.
+  This function is essencially used to create a transaction. The traansaction done is this fucntion is only between distributor and client. 
+  It takes following inputs to create a transactuion:
+    1 buyer id
+    2 seller id
+    3 product id
+    4 number of product
+  It takes the disributor's verdict where he is initiating the transaction with sign or wothout sigh
+  We also do the lie detection in this function which is as follows:
+    1 if client verdict is YES which means he as received the transaction and at this point there is also distributor signature on transaction then the transaction is successfully executed
+    2 if above is not true and client verdict is No and signature is present then client is lying and hence the stakes fo client would be reduced
+    3 if above all is not true and client verdict is NO and there is no distributor signature than the seller is lying ans hence stakes of buyer are reduced 
+  if successfully completing the transaction if the total number of transaction in the transaction list is multiple of 3 than the block is given to mine
+  <!-- This function takes the buyer id, seller id, product id and number of products. The transaction created is between a distributor and a client.
   The transaction also stores the time of transaction. Also it takes the signature of the sender.
-  This function implements the lie detection feature.
+  This function implements the lie detection feature. -->
  ### create_transaction_as_a_manufacture
   This function creates a transaction between manufacturer and distributor. It takes receiver id, product id and units as input since we know that the sender is manufacturer and there is only 1 manufacturer.
  ### validate_transaction
