@@ -181,7 +181,6 @@ class Blockchain(object):
             message = str(buyer) + str(pid*Units*100)
             message = message[:50]
             message = message.encode('utf8')
-            # print(message) 
             trans = {
                 "Transaction_ID": str(uuid4()).replace('-', ''),
                 "Time_send":send_time,
@@ -192,7 +191,6 @@ class Blockchain(object):
                 "Buyer ID": buyer,
                 "Product ID": pid,
                 "Units": Units,
-                # "Sender_Signature":rsa.sign(message, 0, 'SHA-1'),
                 "Receiver_Signature":None,
             }
             client_verdict = str(input(f"Type 'YES' if you - {self.users[buyer]['Name']} recieved {Units} units of product with Product ID - {pid} else 'NO': "))

@@ -13,9 +13,10 @@
 4. View current product status using QRcode : **generate_QR_Code** and *pyqrcode* library
 5. Create transaction from distributor to client: **create_transaction**
 6. Lie detection: whether distributor or client is lying or not. If yes then deduct from security deposit: **create_transaction** function
-## final file:
+
+# blockchain.py File:
 ## Class BlockChain:
- ### create_user
+ ### create_user:
   This creates a new user, a user created can be distributor or client which is decided by the input given by the user 
   if user enters 1 the user is dis and 0 when user is client 
   once called this function take some information of the user which are stated below:<br> 
@@ -24,9 +25,9 @@
     3- stake of the user<br>
 
 
- ### create_new_block
+ ### create_new_block:
    This creates a new block. Transactions are added to block when thy are in a multiple of 3. It creates a header which includes an index, timestamp, previous hash, and merkle root.
- ### create_transaction
+ ### create_transaction:
   This function is essencially used to create a transaction. The traansaction done is this fucntion is only between distributor and client. 
   It takes following inputs to create a transaction:<br>
     1- buyer id<br>
@@ -41,39 +42,36 @@
     3 if above all are not true and client verdict is NO and there is no distributor signature then the seller is lying and hence stakes of buyer are reduced <br>
     
    if successfully completing the transaction if the total number of transaction in the transaction list is multiple of 3 than the block is given to mine 
-  <!-- This function takes the buyer id, seller id, product id and number of products. The transaction created is between a distributor and a client.
-  The transaction also stores the time of transaction. Also it takes the signature of the sender.
-  This function implements the lie detection feature. -->
- ### create_transaction_as_a_manufacture
+ ### create_transaction_as_a_manufacture:
   This function creates a transaction between manufacturer and distributor. It takes receiver id, product id and units as input since we know that the sender is manufacturer and there is only 1 manufacturer.
- ### validate_transaction
+ ### validate_transaction:
  This checks for any wrong transactions like selling to yourself or a client selling to someone. 
- ### validate_chain
+ ### validate_chain:
  This function verifies whether the blockchain is valid one or not. If the hash value contained in header of the current block is not same as hash of the previous block, then this function returns false otherwise it returns true and the other functions continue to execute. 
- ### print_blockchain
+ ### print_blockchain:
  This function prints all the blocks created till that time in the blockchain i.e. their block number, header of each block and the transactions associated with that particular block.
- ### print_product_history
+ ### print_product_history:
  To print all the transaction details, this function is used. It prints the name of the seller and buyer, how many units bought, product ID of that product, buying time and receiving time. 
- ### generate_QR_Code
+ ### generate_QR_Code:
  Whatever the information is stored in the product_history part of the program is represented in the form of QR Code using this functionality which can be scanned to read all the details. Feature 4 is implemented using this function.
- ### hash
+ ### hash:
  This function takes 'block' as the input and creates the hash value of the input. The input can be any transaction, a whole block, or merkle tree. 
- ### create_timer
+ ### create_timer:
  This functions implements the actual consensus algorithm by allowing the person with the highest number of stakes to be the miner. For this, we calculate the total number of stakes of all the user, then double it and divide by the number of users.
 Then we create a randomize function ranging between 1 and the above value to add this value to their individual stakes. Hence, each user has the chance to become miner with some probability
 At the end, the user with the highest stakes will mine the block and stakes for rest of the users will remain as it is.
- ### print_nodes
+ ### print_nodes:
  This function prints information of all the users in the blockchain like his ID,name,product ID,number of products owned and total stakes. This also displays whether an user is a manufacturer, distributor or client.
 <br>
 
-## merkle_tree file:
+# merkle_tree.py file:
 
-### Class Node:
+## Class Node:
  defines a node with left, right and a value
 ### Class MerkleTree: 
-#### hash : 
+#### hash: 
 returns SHA256 encoded value
 #### buildTree:
 recursive function to create the tree
-#### getRootHash
+#### getRootHash:
 returns root value
